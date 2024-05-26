@@ -1,0 +1,6 @@
+@Api_Lucho_HostAddress = http://localhost:5102
+
+GET {{Api_Lucho_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
