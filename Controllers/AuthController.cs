@@ -10,13 +10,11 @@ namespace Api_Lucho.Controllers
     public class AuthController : Controller
     {
         private readonly IAuthService _authRepository;
-        private readonly IConfiguration _configuration;
         private readonly JwtService _jwtService;
 
-        public AuthController(IAuthService authRepository, IConfiguration configuration, JwtService jwtService)
+        public AuthController(IAuthService authRepository, JwtService jwtService)
         {
             _authRepository = authRepository;
-            _configuration = configuration;
             _jwtService = jwtService;
         }
 
@@ -30,7 +28,7 @@ namespace Api_Lucho.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message + "kkkkkkkkkkkkk" });
+                return BadRequest(new { message = ex.Message + " Hacelo bien la proxima :)" });
             }
         }
 
