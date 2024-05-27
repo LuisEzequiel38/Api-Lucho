@@ -42,7 +42,7 @@ namespace Api_Lucho.Controllers
             var authenticatedUser = await _authRepository.AuthenticateAsync(usuario.Email, usuario.Password);
             if (authenticatedUser == null)
             {
-                return Unauthorized(new { message = "Invalid email or password" });
+                return Unauthorized(new { message = "No autorizado" });
             }
 
             var token = _jwtService.GenerateJwtToken(authenticatedUser);

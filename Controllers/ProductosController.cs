@@ -54,7 +54,7 @@ namespace Api_Lucho.Controllers
             }
             catch (DbUpdateException ex)
             {
-                throw new Exception("An error occurred while creating the entity.", ex);
+                throw new Exception("Ocurrio un error al intentar guardar el producto.", ex);
             }
         }
 
@@ -83,7 +83,7 @@ namespace Api_Lucho.Controllers
             }
             catch (DbUpdateException ex)
             {
-                throw new Exception("An error occurred while saving the entity.", ex);
+                throw new Exception("Ocurrio un error al intentar modificar el producto.", ex);
             }
         }
 
@@ -105,7 +105,7 @@ namespace Api_Lucho.Controllers
             }
             catch (DbUpdateException ex)
             {
-                throw new Exception("An error occurred while deleting the entity.", ex);
+                throw new Exception("Ocurrio un error al intentar borrar el producto.", ex);
             }
         }
     }

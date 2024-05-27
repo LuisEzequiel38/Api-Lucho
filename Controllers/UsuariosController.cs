@@ -42,7 +42,7 @@ namespace Api_Lucho.Controllers
 
             if (usuario == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Usuario no encontrado." });
             }
 
          //si no es null pasa datos de la db a DtoUsuario para no exponerlos directamente y retorna usuario
@@ -55,29 +55,27 @@ namespace Api_Lucho.Controllers
         //-------------------------------------------------Modificar Usuario
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateUsuario(int id, Usuario usuario)
+        public async Task<IActionResult> UpdateUsuario([FromBody]int id , UsuarioInfo usuario)
         {
-            if (id != usuario.Id)
+            if (usuario == null)
             {
-                //mala peticion , error 400
-                return BadRequest();
+                throw new Exception("Peticion vacia");
             }
-
             var existingUsuario = await _usuarioRepository.GetUsuarioAsync(id);
             if (existingUsuario == null)
             {
                 //no encontrado , error 404
-                return NotFound();
+                return NoContent ();
             }
 
             try
             {
-                await _usuarioRepository.UpdateUsuarioAsync(usuario);
+                await _usuarioRepository.UpdateUsuarioAsync(existingUsuario);
                 return NoContent();
             }
             catch (DbUpdateException ex)
             {
-                throw new Exception("An error occurred while saving the entity.", ex);
+                throw new Exception("Ocurrio un error al intentar modificar la entidad.", ex);
             }
         }
 
@@ -89,17 +87,18 @@ namespace Api_Lucho.Controllers
             var usuario = await _usuarioRepository.GetUsuarioAsync(id);
             if (usuario == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Usuario no encontrado." });
             }
 
             try
             {
                 await _usuarioRepository.DeleteUsuarioAsync(id);
-                return NoContent();
+                var Eliminado = _usuarioService.ConvertirDto(usuario);
+                return Ok(new { message = "Usuario eliminado.", Eliminado }); 
             }
             catch (DbUpdateException ex)
             {
-                throw new Exception("An error occurred while deleting the entity.", ex);
+                throw new Exception("Hubo un error al intentar eliminar la entidad.", ex);
             }
         }
     }

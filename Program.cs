@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using static Api_Lucho.Services.AuthService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +110,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseMiddleware<VerificacionUsuarioMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
