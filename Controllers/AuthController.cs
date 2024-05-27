@@ -2,6 +2,10 @@
 using Api_Lucho.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Api_Lucho.Services;
+using Api_Lucho.Repository.Implementaciones;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Api_Lucho.Models;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 namespace Api_Lucho.Controllers
 {
@@ -24,11 +28,11 @@ namespace Api_Lucho.Controllers
             try
             {
                 var nuevoUsuario = await _authRepository.RegisterAsync(usuario.NombreUsuario, usuario.Password , usuario.Email , usuario.Rol);
-                return Ok(nuevoUsuario);
+                return CreatedAtAction (nameof(UsuarioRepository.GetUsuario), new { nombre = nuevoUsuario.NombreUsuario }, nuevoUsuario);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message + " Hacelo bien la proxima :)" });
+                return BadRequest(new { message = ex.Message + " ---- Hacelo bien la proxima :)" });
             }
         }
 

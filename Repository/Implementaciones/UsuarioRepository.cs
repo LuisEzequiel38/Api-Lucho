@@ -23,6 +23,10 @@ namespace Api_Lucho.Repository.Implementaciones
         {
             return await _context.Usuarios.FindAsync(id);
         }
+        public Usuario GetUsuario(string nombreUsuario)
+        {
+            return  _context.Usuarios.FirstOrDefault(u => u.NombreUsuario == nombreUsuario);
+        }
         public async Task<Usuario?> GetUsuarioPorEmailAsync(string mailUsuario)
         {
             var usuarioPorMail = _context.Usuarios.FirstOrDefault(u => u.Email == mailUsuario);

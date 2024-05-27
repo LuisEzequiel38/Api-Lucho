@@ -16,10 +16,15 @@ namespace Api_Lucho.Services
         {
             var usuario = await _usuarioRepository.GetUsuarioPorEmailAsync(email);
 
-            if (usuario == null || !BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash))
+            if (usuario == null  )
             {
-                return null;
+                throw new Exception("Email invalido");
             }
+            else if (!BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash))
+            {
+                throw new Exception("Contraseña invalida");
+            }
+
             return usuario;
         }
 
