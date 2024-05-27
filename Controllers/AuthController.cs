@@ -13,12 +13,12 @@ namespace Api_Lucho.Controllers
     [Route("api/[controller]")]
     public class AuthController : Controller
     {
-        private readonly IAuthService _authRepository;
+        private readonly IAuthService _authService;
         private readonly JwtService _jwtService;
 
-        public AuthController(IAuthService authRepository, JwtService jwtService)
+        public AuthController(IAuthService authService, JwtService jwtService)
         {
-            _authRepository = authRepository;
+            _authService = authService;
             _jwtService = jwtService;
         }
 
@@ -27,8 +27,8 @@ namespace Api_Lucho.Controllers
         {
             try
             {
-                var nuevoUsuario = await _authRepository.RegisterAsync(usuario.NombreUsuario, usuario.Password , usuario.Email , usuario.Rol);
-                return CreatedAtAction (nameof(UsuarioRepository.GetUsuario), new { nombre = nuevoUsuario.NombreUsuario }, nuevoUsuario);
+                var nuevoUsuario = await _authService.RegisterAsync(usuario.NombreUsuario, usuario.Password , usuario.Email , usuario.Rol);
+                return CreatedAtAction (nameof(UsuarioRepository.GetUsuarioAsync), new { id = nuevoUsuario.Id }, nuevoUsuario);
             }
             catch (Exception ex)
             {
@@ -39,7 +39,7 @@ namespace Api_Lucho.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDto usuario)
         {
-            var authenticatedUser = await _authRepository.AuthenticateAsync(usuario.Email, usuario.Password);
+            var authenticatedUser = await _authService.AuthenticateAsync(usuario.Email, usuario.Password);
             if (authenticatedUser == null)
             {
                 return Unauthorized(new { message = "No autorizado" });

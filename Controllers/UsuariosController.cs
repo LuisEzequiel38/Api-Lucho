@@ -55,7 +55,7 @@ namespace Api_Lucho.Controllers
         //-------------------------------------------------Modificar Usuario
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> UpdateUsuario([FromBody]int id , UsuarioInfo usuario)
+        public async Task<IActionResult> UpdateUsuario(int id, [FromBody] UsuarioInfo usuario)
         {
             if (usuario == null)
             {

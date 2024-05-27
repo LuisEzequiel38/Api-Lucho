@@ -60,36 +60,6 @@ namespace Api_Lucho.Services
             return usuario;
         }
 
-        public class VerificacionUsuarioMiddleware
-        {
-            private readonly RequestDelegate _next;
-            private readonly IUsuarioRepository _usuarioRepository;
-
-            public VerificacionUsuarioMiddleware(RequestDelegate next , IUsuarioRepository usuarioRepository)
-            {
-                _next = next;
-                _usuarioRepository = usuarioRepository;
-            }
-
-            public async Task InvokeAsync(HttpContext contextoHttp)
-            {
-                if (contextoHttp.User.Identity.IsAuthenticated)
-                {
-                    var userId = contextoHttp.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        var user = await _usuarioRepository.GetUsuarioAsync(int.Parse(userId));
-                        if (user == null)
-                        {
-                            contextoHttp.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                            await contextoHttp.Response.WriteAsync("Unauthorized: No autorizado.");
-                            return;
-                        }
-                    }
-                }
-
-                await _next(contextoHttp);
-            }
-        }
+        
     }
 }

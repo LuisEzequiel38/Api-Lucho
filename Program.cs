@@ -1,4 +1,5 @@
 using Api_Lucho.Context;
+using Api_Lucho.Middleware;
 using Api_Lucho.Repository.Implementaciones;
 using Api_Lucho.Repository.Interfaces;
 using Api_Lucho.Services;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
+using System.Text;  
 using static Api_Lucho.Services.AuthService;
 
 var builder = WebApplication.CreateBuilder(args);
