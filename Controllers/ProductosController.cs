@@ -44,7 +44,7 @@ namespace Api_Lucho.Controllers
 
         //-------------------------------------------------Crear Producto
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "AdminPolicy")]
         public async Task<ActionResult<Producto>> CreateProducto(Producto producto)
         {
             try
@@ -60,7 +60,7 @@ namespace Api_Lucho.Controllers
 
         //-------------------------------------------------Modificar Producto
         [HttpPut("{sku}")]
-        [Authorize]
+        [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> UpdateProducto(int sku, Producto producto)
         {
             if (sku != producto.Sku)
@@ -89,7 +89,7 @@ namespace Api_Lucho.Controllers
 
         //-------------------------------------------------Borrar Producto
         [HttpDelete("{sku}")]
-        [Authorize]
+        [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> DeleteProducto(int sku)
         {
             var producto = await _productoRepository.GetProductoAsync(sku);

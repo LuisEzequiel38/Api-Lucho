@@ -1,14 +1,13 @@
 using Api_Lucho.Context;
-using Api_Lucho.Middleware;
 using Api_Lucho.Repository.Implementaciones;
 using Api_Lucho.Repository.Interfaces;
 using Api_Lucho.Services;
+using Api_Lucho.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;  
-using static Api_Lucho.Services.AuthService;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +65,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
     };
 });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("admin"));
+    options.AddPolicy("ClientePolicy", policy => policy.RequireRole("cliente"));
+});
+
 //------------------------------------Configuracion para autenticar con token jwt
 builder.Services.AddSwaggerGen(c =>
 {
@@ -109,9 +115,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ForbiddenMiddleware>();
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
-app.UseMiddleware<VerificacionUsuarioMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

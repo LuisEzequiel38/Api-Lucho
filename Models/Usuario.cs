@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Api_Lucho.Models
@@ -14,6 +13,6 @@ namespace Api_Lucho.Models
         public string PasswordHash { get; set; }
         public string PasswordSalt { get; set; }
         public string? Email { get; set; }
-        public string? Rol { get; set; }
+        public string? Role { get; set; }
     }
 }

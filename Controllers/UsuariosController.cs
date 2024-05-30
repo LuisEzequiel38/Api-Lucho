@@ -5,6 +5,7 @@ using Api_Lucho.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Api_Lucho.Services;
 using Api_Lucho.DTOs;
+using System.Security.Claims;
 
 namespace Api_Lucho.Controllers
 {
@@ -22,7 +23,7 @@ namespace Api_Lucho.Controllers
 
         //-------------------------------------------------Listar Usuarios
         [HttpGet]
-        [Authorize]
+        [Authorize(Policy = "AdminPolicy")]
         public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
         {
             var usuarios = await _usuarioRepository.GetUsuariosAsync(); 
@@ -35,7 +36,7 @@ namespace Api_Lucho.Controllers
 
         //-------------------------------------------------Listar usuario por id
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Policy = "AdminPolicy")]
         public async Task<ActionResult<Usuario>> GetUsuario(int id)
         {
             var usuario = await _usuarioRepository.GetUsuarioAsync(id);
@@ -49,19 +50,19 @@ namespace Api_Lucho.Controllers
 
             var usuarioDto = _usuarioService.ConvertirDto(usuario);
            
-            return Ok(usuario);
+            return Ok(usuarioDto);
         }
 
         //-------------------------------------------------Modificar Usuario
-        [HttpPut("{id}")]
-        [Authorize]
-        public async Task<IActionResult> UpdateUsuario(int id, [FromBody] UsuarioInfo usuario)
+        [HttpPut("modificar-usuario")]
+        [Authorize(Policy = "ClientePolicy")]
+        public async Task<IActionResult> UpdateUsuario( [FromBody] UsuarioMod usuarioInfo )
         {
-            if (usuario == null)
+            if (usuarioInfo == null)
             {
                 throw new Exception("Peticion vacia");
             }
-            var existingUsuario = await _usuarioRepository.GetUsuarioAsync(id);
+            var existingUsuario = await _usuarioRepository.GetUsuarioAsync(Int32.Parse(ClaimTypes.Sid));
             if (existingUsuario == null)
             {
                 //no encontrado , error 404
@@ -69,9 +70,14 @@ namespace Api_Lucho.Controllers
             }
 
             try
-            {
+            {   // Mapear los campos del DTO a la entidad
+
+                existingUsuario.NombreUsuario = usuarioInfo.Nombre;
+                existingUsuario.Email = usuarioInfo.Email;
+
                 await _usuarioRepository.UpdateUsuarioAsync(existingUsuario);
-                return NoContent();
+
+                return Ok(new { message = "Usuario actualizado." } );
             }
             catch (DbUpdateException ex)
             {
@@ -80,11 +86,11 @@ namespace Api_Lucho.Controllers
         }
 
         //-------------------------------------------------Borrar Usuario
-        [HttpDelete("{id}")]
-        [Authorize]
-        public async Task<IActionResult> DeleteUsuario(int id)
-        {
-            var usuario = await _usuarioRepository.GetUsuarioAsync(id);
+        [HttpDelete("borrar-usuario")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> DeleteUsuario()
+        {            
+            var usuario = await _usuarioRepository.GetUsuarioAsync(Int32.Parse(ClaimTypes.Sid));
             if (usuario == null)
             {
                 return NotFound(new { message = "Usuario no encontrado." });
@@ -92,7 +98,7 @@ namespace Api_Lucho.Controllers
 
             try
             {
-                await _usuarioRepository.DeleteUsuarioAsync(id);
+                await _usuarioRepository.DeleteUsuarioAsync(Int32.Parse(ClaimTypes.Sid));
                 var Eliminado = _usuarioService.ConvertirDto(usuario);
                 return Ok(new { message = "Usuario eliminado.", Eliminado }); 
             }

@@ -12,7 +12,7 @@ namespace Api_Lucho.Services
                 Id = usuario.Id,
                 Nombre = usuario.NombreUsuario, 
                 Email = usuario.Email,
-                Rol = usuario.Rol 
+                Role = usuario.Role
             });
         }
         public UsuarioInfo ConvertirDto(Usuario usuario)
@@ -22,7 +22,15 @@ namespace Api_Lucho.Services
                 Id = usuario.Id,
                 Nombre = usuario.NombreUsuario,
                 Email = usuario.Email,
-                Rol = usuario.Rol
+                Role = usuario.Role
+            };
+        }
+        public UsuarioMod ConvertirDtoMod(Usuario usuario)
+        {
+            return new UsuarioMod
+            {
+                Nombre = usuario.NombreUsuario,
+                Email = usuario.Email
             };
         }
     }

@@ -30,7 +30,7 @@ namespace Api_Lucho.Services
             return usuario;
         }
 
-        public async Task<Usuario> RegisterAsync(string nombre, string password, string email, string rol)
+        public async Task<Usuario> RegisterAsync(string nombre, string password, string email, string role)
         {
             var existingUsuario = await _usuarioRepository.GetUsuarioNombreAsync(nombre);
             var usuarioPorMail = await _usuarioRepository.GetUsuarioPorEmailAsync(email);
@@ -53,7 +53,7 @@ namespace Api_Lucho.Services
                 NombreUsuario = nombre,
                 PasswordHash = hashedPassword,
                 PasswordSalt = salt,
-                Rol = rol
+                Role = role
             };
 
             await _usuarioRepository.AddUsuarioAsync(usuario);
