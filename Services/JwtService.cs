@@ -6,11 +6,10 @@ using System.Text;
 
 namespace Api_Lucho.Services
 {
-
     public class JwtService
     {
         private readonly IConfiguration _configuration;
-        public JwtService(IConfiguration configuration)
+        public JwtService(IConfiguration configuration )
         {
             _configuration = configuration;
         }
@@ -18,14 +17,18 @@ namespace Api_Lucho.Services
         public string GenerateJwtToken(Usuario usuario)
         {
             string claimId = usuario.Id.ToString();
+            string claimNombre = usuario.NombreUsuario;
+
+            if (string.IsNullOrEmpty(usuario.Role)) throw new Exception("Rol null");
+
+            if (string.IsNullOrEmpty(claimId)) throw new Exception("Id null"); 
+
             var claims = new[]
-            {
-                
+            {                
                 new Claim(JwtRegisteredClaimNames.Sub, usuario.NombreUsuario),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, usuario.Role), // Aquí se incluye el rol del usuario
-                new Claim(ClaimTypes.Sid, claimId), // Añadir el ID,
-                
+                new Claim(ClaimTypes.Role, usuario.Role ), // Aquí se incluye el rol del usuario
+                new Claim(ClaimTypes.NameIdentifier, claimId),   
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));

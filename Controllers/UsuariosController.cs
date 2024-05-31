@@ -15,10 +15,12 @@ namespace Api_Lucho.Controllers
     {
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly UsuarioService _usuarioService;
-        public UsuariosController(IUsuarioRepository usuarioRepository , UsuarioService usuarioService)
+        private readonly IAuthService _authService;
+        public UsuariosController( IUsuarioRepository usuarioRepository , UsuarioService usuarioService , IAuthService authService )
         {
             _usuarioRepository = usuarioRepository;
             _usuarioService = usuarioService;
+            _authService = authService;
         }
 
         //-------------------------------------------------Listar Usuarios
@@ -55,14 +57,26 @@ namespace Api_Lucho.Controllers
 
         //-------------------------------------------------Modificar Usuario
         [HttpPut("modificar-usuario")]
-        [Authorize(Policy = "ClientePolicy")]
-        public async Task<IActionResult> UpdateUsuario( [FromBody] UsuarioMod usuarioInfo )
+        [Authorize]
+        public async Task<IActionResult> UpdateUsuario([FromBody] UsuarioMod usuarioMod)
         {
-            if (usuarioInfo == null)
+            if (usuarioMod.Nombre == null || usuarioMod.Email == null)
             {
-                throw new Exception("Peticion vacia");
+                throw new Exception("Complete todos los campos");
             }
-            var existingUsuario = await _usuarioRepository.GetUsuarioAsync(Int32.Parse(ClaimTypes.Sid));
+            
+            var nombre = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (nombre == null) throw new Exception("error");
+
+            string nombreString = nombre.Value.ToString();
+
+            if (nombre == null)
+            {
+                return NotFound(new { message = "Usuario no encontrado." });
+            }
+
+            var existingUsuario = await _usuarioRepository.GetUsuarioNombreAsync(nombreString);
             if (existingUsuario == null)
             {
                 //no encontrado , error 404
@@ -72,8 +86,8 @@ namespace Api_Lucho.Controllers
             try
             {   // Mapear los campos del DTO a la entidad
 
-                existingUsuario.NombreUsuario = usuarioInfo.Nombre;
-                existingUsuario.Email = usuarioInfo.Email;
+                existingUsuario.NombreUsuario = usuarioMod.Nombre;
+                existingUsuario.Email = usuarioMod.Email;
 
                 await _usuarioRepository.UpdateUsuarioAsync(existingUsuario);
 
@@ -85,22 +99,142 @@ namespace Api_Lucho.Controllers
             }
         }
 
+        //-------------------------------------------------Cambiar contraseña
+        [HttpPut("cambiar-contraseña")]
+        [Authorize]
+        public async Task<IActionResult> ContraseñaUsuario([FromBody] UsuarioPass usuarioPass)
+        {
+            if (usuarioPass == null)
+            {
+                throw new Exception("Peticion vacia");
+            }
+            //----------------  Busca usuario por nombre
+
+            var nombre = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (nombre == null) throw new Exception("error");
+
+            string nombreString = nombre.Value.ToString();
+
+            if (nombre == null)
+            {
+                return NotFound(new { message = "Usuario no encontrado." });
+            }
+
+            var existingUsuario = await _usuarioRepository.GetUsuarioNombreAsync(nombreString);
+
+            if (existingUsuario == null)
+            {
+                //no encontrado , error 404
+                return NoContent();
+            }
+
+            try
+            {
+                //----------- Comprueba contraseña 
+
+                var authenticatedUser = await _authService.AuthenticatePassAsync(existingUsuario.Id , usuarioPass.Password);
+
+                //----------- Cambia contraseña
+
+                await _authService.ContraseñaAsync(existingUsuario.Id , usuarioPass.NewPassword);
+
+                //----------- Guarda
+
+                await _usuarioRepository.UpdateUsuarioAsync(existingUsuario);
+                return Ok(new { message = "Contraseña actualizada." });
+
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new Exception("Ocurrio un error al cambiar la contraseña", ex);
+            }
+        }
         //-------------------------------------------------Borrar Usuario
         [HttpDelete("borrar-usuario")]
-        [Authorize(Policy = "AdminPolicy")]
+        [Authorize]
         public async Task<IActionResult> DeleteUsuario()
-        {            
-            var usuario = await _usuarioRepository.GetUsuarioAsync(Int32.Parse(ClaimTypes.Sid));
+
+        {   //----------------  Busca usuario por nombre
+
+            var nombre = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (nombre == null) throw new Exception("error");
+
+            string nombreString = nombre.Value.ToString();
+
+            if (nombre == null)
+            {
+                return NotFound(new { message = "Usuario no encontrado." });
+            }
+
+            var usuario = await _usuarioRepository.GetUsuarioNombreAsync(nombreString);
+
             if (usuario == null)
             {
                 return NotFound(new { message = "Usuario no encontrado." });
             }
 
+            //----------------------Borra usuario y guarda
             try
             {
-                await _usuarioRepository.DeleteUsuarioAsync(Int32.Parse(ClaimTypes.Sid));
+                await _usuarioRepository.DeleteUsuarioAsync(usuario.Id);
                 var Eliminado = _usuarioService.ConvertirDto(usuario);
                 return Ok(new { message = "Usuario eliminado.", Eliminado }); 
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new Exception("Hubo un error al intentar eliminar la entidad.", ex);
+            }
+        }
+
+        //-------------------------------------------------Borrar Usuario por Id ----(Admin)----
+
+        [HttpDelete("borrar-cliente/{id}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> DeleteUsuarioId(int id)
+
+        {
+            var nombre = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            
+
+            string nombreString = nombre.Value.ToString();
+
+            if (nombre == null) return NotFound ( new { message = "Usuario no encontrado." } );
+
+            var adminClaim = await _usuarioRepository.GetUsuarioNombreAsync(nombreString);
+
+            if (adminClaim == null)
+            {
+                throw new Exception("Claim null");
+            }
+
+            if (id == adminClaim.Id)
+            {
+                throw new Exception("Solo elimina clientes");
+            }
+
+            //----------------  Busca usuario 
+            var usuario = await _usuarioRepository.GetUsuarioAsync(id);
+
+            if (usuario == null)
+            {
+                return NotFound(new { message = "Usuario no encontrado." });
+            }
+            //----------------------Verifica que sea cliente
+
+            if (usuario.Role != "cliente")
+            {
+                throw new Exception("Solo elimina clientes");
+            }
+
+            //----------------------Borra usuario y guarda
+            try
+            {
+                await _usuarioRepository.DeleteUsuarioAsync(id);
+                var Eliminado = _usuarioService.ConvertirDto(usuario);
+                return Ok(new { message = "Usuario eliminado.", Eliminado });
             }
             catch (DbUpdateException ex)
             {

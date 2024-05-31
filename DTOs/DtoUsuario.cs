@@ -27,5 +27,11 @@
         public string? Nombre { get; set; }
         public string? Email { get; set; }
     }
+    public class UsuarioPass
+    {
+        public required string Password { get; set; }
+        public required string NewPassword { get; set; }
+
+    }
 }
 

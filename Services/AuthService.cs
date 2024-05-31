@@ -1,7 +1,5 @@
 ﻿using Api_Lucho.Models;
-using Api_Lucho.Repository.Implementaciones;
 using Api_Lucho.Repository.Interfaces;
-using System.Security.Claims;
 
 namespace Api_Lucho.Services
 {
@@ -14,6 +12,7 @@ namespace Api_Lucho.Services
             _usuarioRepository = usuarioRepository;
         }
 
+        //-----------------------Login
         public async Task<Usuario?> AuthenticateAsync(string email, string password)
         {
             var usuario = await _usuarioRepository.GetUsuarioPorEmailAsync(email);
@@ -26,10 +25,10 @@ namespace Api_Lucho.Services
             {
                 throw new Exception("Contraseña invalida");
             }
-
             return usuario;
         }
 
+        //-----------------------Registra usuario 
         public async Task<Usuario> RegisterAsync(string nombre, string password, string email, string role)
         {
             var existingUsuario = await _usuarioRepository.GetUsuarioNombreAsync(nombre);
@@ -42,7 +41,6 @@ namespace Api_Lucho.Services
             {
                 throw new Exception("Email ya registrado");
             }
-
 
             var salt = BCrypt.Net.BCrypt.GenerateSalt();
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
@@ -60,6 +58,40 @@ namespace Api_Lucho.Services
             return usuario;
         }
 
-        
+        //-----------------------Comprueba contraseña
+        public async Task<Usuario?> AuthenticatePassAsync(int id, string password)
+        {
+            var usuario = await _usuarioRepository.GetUsuarioAsync(id);
+
+            if (usuario == null)
+            {
+                throw new Exception("Escriba su contraseña actual");
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash))
+            {
+                throw new Exception("Contraseña invalida");
+            }
+            return usuario;
+        }
+
+        //-----------------------Cambia contraseña 
+        public async Task<Usuario> ContraseñaAsync(int id, string password)
+        {
+            var existingUsuario = await _usuarioRepository.GetUsuarioAsync(id);
+
+            if (existingUsuario == null)
+            {
+                throw new Exception("Usuario no existe");
+            }
+
+            var salt = BCrypt.Net.BCrypt.GenerateSalt();
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
+
+            existingUsuario.PasswordHash = hashedPassword;
+            existingUsuario.PasswordSalt = salt;
+
+            return existingUsuario;
+        }
     }
 }

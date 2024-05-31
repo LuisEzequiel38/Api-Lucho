@@ -18,6 +18,7 @@ namespace Api_Lucho.Controllers
             _jwtService = jwtService;
         }
 
+        //-----------------------Registrarse
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UsuarioRegisterDto usuario)
         {
@@ -41,6 +42,7 @@ namespace Api_Lucho.Controllers
             }
         }
 
+        //-----------------------Login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDto usuario)
         {
