@@ -115,7 +115,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ForbiddenMiddleware>();
+app.UseMiddleware<HttpCodesMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

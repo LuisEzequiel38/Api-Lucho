@@ -20,9 +20,8 @@ namespace Api_Lucho.Repository.Implementaciones
         }
 
         public async Task<Producto> GetProductoAsync(int sku)
-        {
+        {              
             return await _context.Productos.FindAsync(sku);
-
         }
 
         public async Task AddProductoAsync(Producto producto)

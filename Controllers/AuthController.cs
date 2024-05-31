@@ -19,8 +19,8 @@ namespace Api_Lucho.Controllers
         }
 
         //-----------------------Registrarse
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UsuarioRegisterDto usuario)
+        [HttpPost("registrar")]
+        public async Task<IActionResult> Registrar([FromBody] UsuarioRegisterDto usuario)
         {
             try
             {

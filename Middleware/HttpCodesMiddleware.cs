@@ -2,11 +2,11 @@
 
 namespace Api_Lucho.Middleware
 {
-    public class ForbiddenMiddleware
+    public class HttpCodesMiddleware
     {
         private readonly RequestDelegate _next;
 
-        public ForbiddenMiddleware(RequestDelegate next)
+        public HttpCodesMiddleware(RequestDelegate next)
         {
             _next = next;
         }

@@ -16,11 +16,14 @@ namespace Api_Lucho.Controllers
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly UsuarioService _usuarioService;
         private readonly IAuthService _authService;
-        public UsuariosController( IUsuarioRepository usuarioRepository , UsuarioService usuarioService , IAuthService authService )
+        private readonly JwtService _jwtService;
+
+        public UsuariosController( IUsuarioRepository usuarioRepository , UsuarioService usuarioService , IAuthService authService , JwtService jwtService)
         {
             _usuarioRepository = usuarioRepository;
             _usuarioService = usuarioService;
             _authService = authService;
+            _jwtService = jwtService;
         }
 
         //-------------------------------------------------Listar Usuarios
@@ -67,7 +70,10 @@ namespace Api_Lucho.Controllers
             
             var nombre = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (nombre == null) throw new Exception("error");
+            if (nombre == null)
+            {
+                throw new Exception("error");
+            }
 
             string nombreString = nombre.Value.ToString();
 
@@ -77,6 +83,7 @@ namespace Api_Lucho.Controllers
             }
 
             var existingUsuario = await _usuarioRepository.GetUsuarioNombreAsync(nombreString);
+
             if (existingUsuario == null)
             {
                 //no encontrado , error 404
@@ -91,7 +98,10 @@ namespace Api_Lucho.Controllers
 
                 await _usuarioRepository.UpdateUsuarioAsync(existingUsuario);
 
-                return Ok(new { message = "Usuario actualizado." } );
+                var newToken = _jwtService.GenerateJwtToken(existingUsuario);
+
+                return Ok ( new { message = "Usuario actualizado." ,newToken } );
+
             }
             catch (DbUpdateException ex)
             {
@@ -112,7 +122,10 @@ namespace Api_Lucho.Controllers
 
             var nombre = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (nombre == null) throw new Exception("error");
+            if (nombre == null)
+            {
+                throw new Exception("error");
+            }
 
             string nombreString = nombre.Value.ToString();
 
@@ -159,7 +172,10 @@ namespace Api_Lucho.Controllers
 
             var nombre = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (nombre == null) throw new Exception("error");
+            if (nombre == null)
+            {
+                throw new Exception("error");
+            }
 
             string nombreString = nombre.Value.ToString();
 
@@ -178,8 +194,12 @@ namespace Api_Lucho.Controllers
             //----------------------Borra usuario y guarda
             try
             {
-                await _usuarioRepository.DeleteUsuarioAsync(usuario.Id);
+                usuario.Active = false;
+                usuario.FechaBorrado = DateTime.UtcNow;
+
+                await _usuarioRepository.UpdateUsuarioAsync(usuario);
                 var Eliminado = _usuarioService.ConvertirDto(usuario);
+
                 return Ok(new { message = "Usuario eliminado.", Eliminado }); 
             }
             catch (DbUpdateException ex)
@@ -189,7 +209,6 @@ namespace Api_Lucho.Controllers
         }
 
         //-------------------------------------------------Borrar Usuario por Id ----(Admin)----
-
         [HttpDelete("borrar-cliente/{id}")]
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> DeleteUsuarioId(int id)
@@ -197,11 +216,12 @@ namespace Api_Lucho.Controllers
         {
             var nombre = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            
+            if (nombre == null)
+            {
+                return NotFound(new { message = "Usuario no encontrado." });
+            }
 
-            string nombreString = nombre.Value.ToString();
-
-            if (nombre == null) return NotFound ( new { message = "Usuario no encontrado." } );
+            string nombreString = nombre.Value.ToString();                            
 
             var adminClaim = await _usuarioRepository.GetUsuarioNombreAsync(nombreString);
 
@@ -216,6 +236,7 @@ namespace Api_Lucho.Controllers
             }
 
             //----------------  Busca usuario 
+
             var usuario = await _usuarioRepository.GetUsuarioAsync(id);
 
             if (usuario == null)
@@ -229,10 +250,12 @@ namespace Api_Lucho.Controllers
                 throw new Exception("Solo elimina clientes");
             }
 
-            //----------------------Borra usuario y guarda
+            //----------------------Ejecuta borrado logico y guarda
             try
             {
-                await _usuarioRepository.DeleteUsuarioAsync(id);
+                usuario.Active = false;
+                usuario.FechaBorrado = DateTime.UtcNow;
+                await _usuarioRepository.UpdateUsuarioAsync(usuario);
                 var Eliminado = _usuarioService.ConvertirDto(usuario);
                 return Ok(new { message = "Usuario eliminado.", Eliminado });
             }
